@@ -1,6 +1,7 @@
 require 'oystercard'
 
 describe Oystercard do
+  let(:station){ double :station }
 
   it 'is not in journey' do
     expect(subject).not_to be_in_journey
@@ -8,25 +9,31 @@ describe Oystercard do
 
   it 'can be touched in' do
     subject.top_up(10)
-    subject.touch_in
+    subject.touch_in(station)
     expect(subject).to be_in_journey
   end
 
   it 'can be touched out' do
     subject.top_up(10)
-    subject.touch_in
+    subject.touch_in(station)
     subject.touch_out
     expect(subject).not_to be_in_journey
   end
 
   it 'cannot touch in if insufficient balance' do
-    expect{ subject.touch_in }.to raise_error "Insufficient balance on oyster"
+    expect{ subject.touch_in(station) }.to raise_error "Insufficient balance on oyster"
   end
 
   it 'deducts money on touch out' do
     subject.top_up(10)
-    subject.touch_in
+    subject.touch_in(station)
     expect{ subject.touch_out }.to change{ subject.balance }.by(-Oystercard::MINIMUM_TRAVEL_BALANCE)
+  end
+
+  it 'remembers the entry station' do
+    subject.top_up(10)
+    subject.touch_in(station)
+    expect(subject.entry_station).to eq station
   end
 
   describe 'initialization' do
@@ -48,5 +55,5 @@ describe Oystercard do
       expect{ subject.top_up(1) }.to raise_error "Top up limit of £#{max_balance} exceeded"
     end
   end
-  
+
 end
