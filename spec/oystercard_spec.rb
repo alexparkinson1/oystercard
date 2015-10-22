@@ -2,6 +2,22 @@ require 'oystercard'
 
 describe Oystercard do
 
+  it 'is not in journey' do
+    expect(subject).not_to be_in_journey
+  end
+
+  it 'can be touched in' do
+    subject.top_up(10)
+    subject.touch_in
+    expect(subject).to be_in_journey
+  end
+
+  it 'can be touched out' do
+    subject.touch_in
+    subject.touch_out
+    expect(subject).not_to be_in_journey
+  end
+
   describe 'initialization' do
     it 'has a balance of zero' do
       expect(subject.balance).to eq(0)
