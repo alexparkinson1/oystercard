@@ -7,13 +7,13 @@ describe Oystercard do
   end
 
   it 'can be touched in' do
-    subject.top_up(1)
+    subject.top_up(10)
     subject.touch_in
     expect(subject).to be_in_journey
   end
 
   it 'can be touched out' do
-    subject.top_up(1)
+    subject.top_up(10)
     subject.touch_in
     subject.touch_out
     expect(subject).not_to be_in_journey
@@ -21,6 +21,12 @@ describe Oystercard do
 
   it 'cannot touch in if insufficient balance' do
     expect{ subject.touch_in }.to raise_error "Insufficient balance on oyster"
+  end
+
+  it 'deducts money on touch out' do
+    subject.top_up(10)
+    subject.touch_in
+    expect{ subject.touch_out }.to change{ subject.balance }.by(-Oystercard::MINIMUM_TRAVEL_BALANCE)
   end
 
   describe 'initialization' do
@@ -42,13 +48,5 @@ describe Oystercard do
       expect{ subject.top_up(1) }.to raise_error "Top up limit of £#{max_balance} exceeded"
     end
   end
-
-  describe '#deduct' do
-    it { is_expected.to respond_to(:deduct).with(1).argument }
-
-    it 'deducts money when you touch in' do
-      subject.top_up(10)
-      expect{ subject.deduct 3}.to change{ subject.balance }.by -3
-    end
-  end
+  
 end
