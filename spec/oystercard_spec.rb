@@ -1,39 +1,58 @@
 require 'oystercard'
 
 describe Oystercard do
-  let(:station){ double :station }
+  let(:entry_station) { double :station }
+  let(:exit_station) { double :station }
+  let(:journey){ {entry_station: entry_station, exit_station: exit_station} }
+
+  def travelling
+    subject.top_up(10)
+    subject.touch_in(entry_station)
+  end
 
   it 'is not in journey' do
     expect(subject).not_to be_in_journey
   end
 
   it 'can be touched in' do
-    subject.top_up(10)
-    subject.touch_in(station)
+    travelling
     expect(subject).to be_in_journey
   end
 
   it 'can be touched out' do
-    subject.top_up(10)
-    subject.touch_in(station)
-    subject.touch_out
+    travelling
+    subject.touch_out(exit_station)
     expect(subject).not_to be_in_journey
   end
 
   it 'cannot touch in if insufficient balance' do
-    expect{ subject.touch_in(station) }.to raise_error "Insufficient balance on oyster"
+    expect{ subject.touch_in(entry_station) }.to raise_error "Insufficient balance on oyster"
   end
 
   it 'deducts money on touch out' do
-    subject.top_up(10)
-    subject.touch_in(station)
-    expect{ subject.touch_out }.to change{ subject.balance }.by(-Oystercard::MINIMUM_TRAVEL_BALANCE)
+    travelling
+    expect{ subject.touch_out(exit_station) }.to change{ subject.balance }.by(-Oystercard::MINIMUM_TRAVEL_BALANCE)
   end
 
   it 'remembers the entry station' do
-    subject.top_up(10)
-    subject.touch_in(station)
-    expect(subject.entry_station).to eq station
+    travelling
+    expect(subject.entry_station).to eq entry_station
+  end
+
+  it 'remembers the exit station' do
+    travelling
+    subject.touch_out(exit_station)
+    expect(subject.exit_station).to eq exit_station
+  end
+
+  it 'holds a journey log' do
+    expect(subject.journeys).to be_empty
+  end
+
+  it 'stores a journey' do
+    travelling
+    subject.touch_out(exit_station)
+    expect(subject.journeys).to include journey
   end
 
   describe 'initialization' do
